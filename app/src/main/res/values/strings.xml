@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">PillClock</string>
+    <string name="dialog_message">Are you sure you want to reset this timer?</string>
+    <string name="dialog_cancel">No</string>
+    <string name="dialog_accept">Yes</string>
 </resources>
