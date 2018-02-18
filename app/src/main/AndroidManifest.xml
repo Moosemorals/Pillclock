@@ -13,6 +13,9 @@
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="com.fluffypeople.pillclock.ACTION_TICK" />
+            </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/pillclock_appwidget_info" />
@@ -26,11 +29,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".PillWidgetConfigure">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

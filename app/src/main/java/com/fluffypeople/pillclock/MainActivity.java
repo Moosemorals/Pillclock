@@ -1,49 +1,59 @@
 package com.fluffypeople.pillclock;
 
-import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String DATE_FORMAT = "HH:mm dd MMM YYYY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final Button confirm = findViewById(R.id.confirm);
+
+        updateStatus();
+
+
+        confirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateLastPill();
+
+
+            }
+        });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    private void updateLastPill() {
+        PillclockAppWidgetProvider.setLastPill(this);
+        updateStatus();
 
-        Intent intent = getIntent();
+        Intent intent = new Intent(this, PillclockAppWidgetProvider.class);
+        intent.setAction(PillclockApplication.ACTION_TICK);
 
-        String action = intent.getAction();
-
-        if (action == null) {
-            return;
-        }
-
-        switch (action) {
-            case PillclockApplication.ACTION_RESET:
-                int widgetId = intent.getIntExtra(PillclockApplication.EXTRA_WIDGET_ID, -1);
-                Log.d("Main", "Got intent with id:" + widgetId);
-                showSureDialog(widgetId);
-                break;
-        }
-
+        sendBroadcast(intent);
     }
 
-    private void showSureDialog(int widgetId) {
-        DialogFragment dialog = new SureDialog();
+    private void updateStatus() {
+        final TextView status = findViewById(R.id.status);
 
-        Bundle args = new Bundle();
-        args.putInt(PillclockApplication.EXTRA_WIDGET_ID, widgetId);
+        Calendar lastPill = PillclockAppWidgetProvider.getLastPill(this);
 
-        dialog.setArguments(args);
+        DateFormat df = new SimpleDateFormat(DATE_FORMAT);
 
-        dialog.show(getFragmentManager(), "SureDialog");
+        String lastPillString = df.format(lastPill.getTime());
+
+        status.setText(getString(R.string.status, lastPillString));
     }
 }

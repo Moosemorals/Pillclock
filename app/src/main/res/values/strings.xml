@@ -1,12 +1,5 @@
 <resources>
     <string name="app_name">PillClock</string>
-    <string name="dialog_message">Are you sure you want to reset this timer ({0})?</string>
-    <string name="dialog_cancel">No</string>
-    <string name="dialog_accept">Yes</string>
-    <string name="label_name">Name</string>
-    <string name="input_name_hint">Name of the pill</string>
-    <string name="label_period">How long before it turns red?</string>
-    <string name="input_period_hint">Maximum age (hours)</string>
-    <string name="new_widget_cancel">Cancel</string>
-    <string name="new_widget_add">Add</string>
+    <string name="confirm">Confirm</string>
+    <string name="status">You last took a pill at %1$s. Click the button to confirm you\'ve taken another pill.</string>
 </resources>
