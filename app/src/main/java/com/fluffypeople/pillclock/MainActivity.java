@@ -10,6 +10,15 @@ import android.widget.TextView;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
+
+/*
+    TODO:
+        Alarm/updates
+        If age > 12 hours, shade the overlap red
+        Add "are you sure" OK/Cancel to update time
+
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,22 +30,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         final Button confirm = findViewById(R.id.confirm);
-
         updateStatus();
-
 
         confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 updateLastPill();
-
-
             }
         });
     }
 
     private void updateLastPill() {
-        PillclockAppWidgetProvider.setLastPill(this);
+        PillclockApplication.setLastPill(this);
         updateStatus();
 
         Intent intent = new Intent(this, PillclockAppWidgetProvider.class);
@@ -48,9 +53,9 @@ public class MainActivity extends AppCompatActivity {
     private void updateStatus() {
         final TextView status = findViewById(R.id.status);
 
-        Calendar lastPill = PillclockAppWidgetProvider.getLastPill(this);
+        Calendar lastPill = PillclockApplication.getLastPill(this);
 
-        DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        DateFormat df = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
 
         String lastPillString = df.format(lastPill.getTime());
 

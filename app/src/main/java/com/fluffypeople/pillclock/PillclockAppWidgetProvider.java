@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -14,52 +13,22 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import static com.fluffypeople.pillclock.PillclockApplication.CONFIG_LAST_PILL;
-import static com.fluffypeople.pillclock.PillclockApplication.PREFERENCES;
-
 /**
- *
+ * Manage the widget
  * Created by osric on 11/02/18.
  */
 
 public class PillclockAppWidgetProvider extends AppWidgetProvider {
 
+    // Some colors. Remember: ARGB, and FF is opaque.
     private static final int startHandColor = 0xFF00FF00;
     private static final int endHandColor = 0xFFFFFFFF;
     private static final int sectorColor = 0x88888888;
-
-    static Calendar getLastPill(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
-        long lastPill = prefs.getLong(CONFIG_LAST_PILL, -1);
-
-        if (lastPill == -1) {
-            Log.i("getLastPill", "Last Pill not known, setting to now");
-            lastPill = setLastPill(context);
-        }
-
-        Calendar result = new GregorianCalendar();
-        result.setTimeInMillis(lastPill);
-
-        return result;
-    }
-
-    static long setLastPill(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
-
-        long lastPill = System.currentTimeMillis();
-
-        prefs.edit()
-                .putLong(CONFIG_LAST_PILL, lastPill)
-                .apply();
-
-        return lastPill;
-    }
 
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -92,57 +61,93 @@ public class PillclockAppWidgetProvider extends AppWidgetProvider {
         }
     }
 
+    /**
+     * Calculate the angle of time.
+     *
+     * @param when
+     * @return
+     */
+    private float calculateAngle(Calendar when) {
+        // Convert the time into a number of minutes from 12 noon or 12 midnight
+        float angle = (when.get(Calendar.HOUR_OF_DAY) % 12f) * 60f + when.get(Calendar.MINUTE);
+        // Scale it to between 0 and 1;
+        angle = angle / (12f * 60f);
+        // Multiply up by 360 to get an angle
+        angle *= 360f;
+
+        return angle;
+    }
+
+    /**
+     * Draw the bitmap that the widget displays. A clock face, with an arc segment
+     * showing how far its been between when the pill was taken, and now.
+     *
+     * @param context A valid context
+     * @return The newly constructed Bitmap
+     */
     private Bitmap drawClock(Context context) {
         int width, height;
 
-        Calendar lastPill = getLastPill(context);
+        // Get the time of the last pill, and make a note of the current time
+        Calendar lastPill = PillclockApplication.getLastPill(context);
+        Calendar now = new GregorianCalendar(PillclockApplication.LOCALE);
 
-        Calendar now = new GregorianCalendar();
+        // Get angles from times
+        float lastPillAngle = calculateAngle(lastPill);
+        float nowAngle = calculateAngle(now);
 
-        Bitmap clock = BitmapFactory.decodeResource(context.getResources(), R.drawable.clock_face);
-
-        width = clock.getWidth();
-        height = clock.getHeight();
-
-        Bitmap hand = BitmapFactory.decodeResource(context.getResources(), R.drawable.hand_short);
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(sectorColor);
-
-        Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-        Bitmap result = Bitmap.createBitmap(width, height, conf);
-        Canvas canvas = new Canvas(result);
-        canvas.drawBitmap(clock, 0, 0, null);
-
-        float lastPillAngle = (lastPill.get(Calendar.HOUR_OF_DAY) % 12f) * 60f + lastPill.get(Calendar.MINUTE);
-        lastPillAngle = lastPillAngle / (12f * 60f);
-        lastPillAngle *= 360f;
-
-        float nowAngle = (now.get(Calendar.HOUR_OF_DAY) % 12f) * 60f + now.get(Calendar.MINUTE);
-        nowAngle = nowAngle / (12f * 60f);
-        nowAngle *= 360;
-
+        // Android measures angles clockwise from 3 O'Clock, so calculate the start angle
+        // as lastPillAngle - 90 degrees
         float startAngle = lastPillAngle - 90;
+        // Sweep is how far round the arc we need to go. Now minus lastPillAngle
         float sweepAngle = (nowAngle - lastPillAngle);
+        // Modulus is irritating. If sweep is negative, make sure it's positive.
         while (sweepAngle < 0) {
             sweepAngle += 360;
         }
-
+        // and *then* do the modulus.
         sweepAngle = (sweepAngle % 360);
 
+        // Pull the clock from resources
+        Bitmap clock = BitmapFactory.decodeResource(context.getResources(), R.drawable.clock_face);
+        // Everything is sized relative to the clock face.
+        width = clock.getWidth();
+        height = clock.getHeight();
+
+        // Create a new Bitmap the same size as the clock face
+        Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+        Bitmap result = Bitmap.createBitmap(width, height, conf);
+        Canvas canvas = new Canvas(result);
+        // And draw the clock into it.
+        // TODO: Maybe we can do this as one step. Not sure we need to.
+        canvas.drawBitmap(clock, 0, 0, null);
+        clock.recycle();
+
+        // Create a paint, and use it to draw the arc sector
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        p.setColor(sectorColor);
         canvas.drawArc(new RectF(0, 0, width, height), startAngle, sweepAngle, true, p);
 
+
+        // Pull the hand from resources
+        Bitmap hand = BitmapFactory.decodeResource(context.getResources(), R.drawable.hand_short);
+
+        // I'm not sure exactly how this works, but setup the paint to change the color of the hand
+        // Then rotate the bitmap to draw the start hand
         p.setColorFilter(new PorterDuffColorFilter(endHandColor, PorterDuff.Mode.SRC_IN));
         canvas.save();
         canvas.rotate(nowAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);
         canvas.restore();
 
+        // And again for the end hand
         p.setColorFilter(new PorterDuffColorFilter(startHandColor, PorterDuff.Mode.SRC_IN));
         canvas.save();
         canvas.rotate(lastPillAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);
         canvas.restore();
 
+        // And done.
         return result;
     }
 
