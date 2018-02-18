@@ -1,5 +1,5 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="com.fluffypeople.pillclock.PillWidgetConfigure"
+
     android:initialLayout="@layout/pillclock_appwidget"
     android:minHeight="40dp"
     android:minWidth="40dp"
@@ -11,5 +11,5 @@
 
 <!--
 
-
+android:configure="com.fluffypeople.pillclock.PillWidgetConfigure"
 -->

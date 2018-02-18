@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://C:\Users\Osric\StudioProjects\Pillclock\PillClock.iml" filepath="C:\Users\Osric\StudioProjects\Pillclock\PillClock.iml" />
       <module fileurl="file://$PROJECT_DIR$/Pillclock.iml" filepath="$PROJECT_DIR$/Pillclock.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://C:\Users\Osric\StudioProjects\Pillclock\app\app.iml" filepath="C:\Users\Osric\StudioProjects\Pillclock\app\app.iml" />
     </modules>
   </component>
 </project>
