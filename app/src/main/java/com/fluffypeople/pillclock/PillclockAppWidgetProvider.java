@@ -13,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
+import android.util.Log;
 import android.widget.RemoteViews;
 
 import java.util.Calendar;
@@ -26,30 +27,44 @@ import java.util.GregorianCalendar;
 public class PillclockAppWidgetProvider extends AppWidgetProvider {
 
     // Some colors. Remember: ARGB, and FF is opaque.
-    private static final int startHandColor = 0xFF00FF00;
-    private static final int endHandColor = 0xFFFFFFFF;
-    private static final int sectorColor = 0x88888888;
+    private static final int START_HAND_COLOR = 0xFF00FF00;
+    private static final int END_HAND_COLOR = 0xFFFFFFFF;
+    private static final int SECTOR_BASE_COLOR = 0xA0000000;
+    private static final int SECTOR_ALERT_COLOR = 0x40880000;
 
     public void onReceive(Context context, Intent intent) {
-        super.onReceive(context, intent);
-        if (intent.getAction().equals(PillclockApplication.ACTION_TICK)) {
-            ComponentName cn = new ComponentName(context, this.getClass());
-            updateWidget(context, cn);
+        String action = intent.getAction();
+        if (action == null) {
+            action = "";
+        }
+
+        Log.d("onReceive", "Action: " + action);
+
+        switch (action) {
+            case Intent.ACTION_BOOT_COMPLETED:
+            case PillclockApplication.ACTION_ENABLE_ALARM:
+                PillclockApplication.enableAlarm(context);
+                break;
+            case PillclockApplication.ACTION_TICK:
+                updateWidget(context);
+
+            default:
+                super.onReceive(context, intent);
+                break;
         }
     }
 
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        ComponentName cn = new ComponentName(context, this.getClass());
-        updateWidget(context, cn);
+        updateWidget(context);
     }
 
-    private void updateWidget(Context context, ComponentName cn) {
+    private void updateWidget(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(cn);
-        Bitmap clock = drawClock(context);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
+        Bitmap clock = drawWidget(context);
 
         for (int appWidgetId : appWidgetIds) {
-
+            Log.d("updateWidget", "Updating widget " + appWidgetId);
             Intent intent = new Intent(context, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -85,12 +100,14 @@ public class PillclockAppWidgetProvider extends AppWidgetProvider {
      * @param context A valid context
      * @return The newly constructed Bitmap
      */
-    private Bitmap drawClock(Context context) {
+    private Bitmap drawWidget(Context context) {
         int width, height;
 
         // Get the time of the last pill, and make a note of the current time
         Calendar lastPill = PillclockApplication.getLastPill(context);
         Calendar now = new GregorianCalendar(PillclockApplication.LOCALE);
+
+        long pillAge = (now.getTimeInMillis() - lastPill.getTimeInMillis()) / (60 * 60 * 1000);
 
         // Get angles from times
         float lastPillAngle = calculateAngle(lastPill);
@@ -125,8 +142,19 @@ public class PillclockAppWidgetProvider extends AppWidgetProvider {
 
         // Create a paint, and use it to draw the arc sector
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(sectorColor);
-        canvas.drawArc(new RectF(0, 0, width, height), startAngle, sweepAngle, true, p);
+        p.setColor(SECTOR_BASE_COLOR);
+
+        // If it's been more than 12 hours, draw an arc over the top in red
+
+        float factor = 0.05f;
+        RectF bounds = new RectF(factor * width, factor * height, (1 - factor) * width, (1 - factor) * height);
+        if (pillAge > 12) {
+            canvas.drawArc(bounds, 0, 360, true, p);
+            p.setColor(SECTOR_ALERT_COLOR);
+            canvas.drawArc(bounds, startAngle, sweepAngle, true, p);
+        } else {
+            canvas.drawArc(bounds, startAngle, sweepAngle, true, p);
+        }
 
 
         // Pull the hand from resources
@@ -134,14 +162,14 @@ public class PillclockAppWidgetProvider extends AppWidgetProvider {
 
         // I'm not sure exactly how this works, but setup the paint to change the color of the hand
         // Then rotate the bitmap to draw the start hand
-        p.setColorFilter(new PorterDuffColorFilter(endHandColor, PorterDuff.Mode.SRC_IN));
+        p.setColorFilter(new PorterDuffColorFilter(END_HAND_COLOR, PorterDuff.Mode.SRC_IN));
         canvas.save();
         canvas.rotate(nowAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);
         canvas.restore();
 
         // And again for the end hand
-        p.setColorFilter(new PorterDuffColorFilter(startHandColor, PorterDuff.Mode.SRC_IN));
+        p.setColorFilter(new PorterDuffColorFilter(START_HAND_COLOR, PorterDuff.Mode.SRC_IN));
         canvas.save();
         canvas.rotate(lastPillAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);

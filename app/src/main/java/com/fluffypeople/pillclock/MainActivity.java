@@ -1,5 +1,7 @@
 package com.fluffypeople.pillclock;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +17,6 @@ import java.util.Locale;
 /*
     TODO:
         Alarm/updates
-        If age > 12 hours, shade the overlap red
         Add "are you sure" OK/Cancel to update time
 
  */
@@ -32,10 +33,12 @@ public class MainActivity extends AppCompatActivity {
         final Button confirm = findViewById(R.id.confirm);
         updateStatus();
 
+        sendBroadcast(PillclockApplication.ACTION_ENABLE_ALARM);
+
         confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateLastPill();
+                buildDialog().show();
             }
         });
     }
@@ -43,11 +46,6 @@ public class MainActivity extends AppCompatActivity {
     private void updateLastPill() {
         PillclockApplication.setLastPill(this);
         updateStatus();
-
-        Intent intent = new Intent(this, PillclockAppWidgetProvider.class);
-        intent.setAction(PillclockApplication.ACTION_TICK);
-
-        sendBroadcast(intent);
     }
 
     private void updateStatus() {
@@ -60,5 +58,28 @@ public class MainActivity extends AppCompatActivity {
         String lastPillString = df.format(lastPill.getTime());
 
         status.setText(getString(R.string.status, lastPillString));
+
+        sendBroadcast(PillclockApplication.ACTION_TICK);
+    }
+
+
+    private void sendBroadcast(String action) {
+        Intent intent = new Intent(this, PillclockAppWidgetProvider.class);
+        intent.setAction(action);
+
+        sendBroadcast(intent);
+    }
+
+    private AlertDialog buildDialog() {
+        return new AlertDialog.Builder(this)
+                .setMessage(R.string.dialog_text)
+                .setPositiveButton(R.string.dialog_yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        updateLastPill();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_no, null)
+                .create();
     }
 }

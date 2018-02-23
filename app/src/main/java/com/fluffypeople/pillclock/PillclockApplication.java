@@ -1,8 +1,11 @@
 package com.fluffypeople.pillclock;
 
 
+import android.app.AlarmManager;
 import android.app.Application;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
 
@@ -19,7 +22,7 @@ public class PillclockApplication extends Application {
 
     static final String CONFIG_LAST_PILL = "com.fluffypeople.pillclock.config_last_pill";
     static final String ACTION_TICK = "com.fluffypeople.pillclock.ACTION_TICK";
-
+    static final String ACTION_ENABLE_ALARM = "com.fluffypeople.pillclock.ACTION_ENABLE_ALARM";
     static final String PREFERENCES = "com.fluffypeople.pillclock";
     static final Locale LOCALE = Locale.ENGLISH;
 
@@ -60,5 +63,14 @@ public class PillclockApplication extends Application {
                 .apply();
 
         return lastPill;
+    }
+
+    static void enableAlarm(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(context, PillclockAppWidgetProvider.class);
+        intent.setAction(ACTION_TICK);
+
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, 0, AlarmManager.INTERVAL_FIFTEEN_MINUTES, alarmIntent);
     }
 }
