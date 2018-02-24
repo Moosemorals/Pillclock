@@ -67,7 +67,7 @@ public class PillclockApplication extends Application {
 
     static void enableAlarm(Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, PillclockAppWidgetProvider.class);
+        Intent intent = new Intent(context, BroadcastHandler.class);
         intent.setAction(ACTION_TICK);
 
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);

@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">PillClock</string>
     <string name="confirm">Confirm</string>
-    <string name="status">You last took a pill at %1$s. Click the button to confirm you\'ve taken another pill.</string>
+    <string name="intro">Long click on the desktop to create a widget. Click the widget to set the time you took your medicine.</string>
+    <string name="status">You last took a pill at %1$s.</string>
     <string name="dialog_text">Are you sure?</string>
     <string name="dialog_yes">OK</string>
     <string name="dialog_no">Cancel</string>
+    <string name="dialog_title">Reset clock</string>
 </resources>

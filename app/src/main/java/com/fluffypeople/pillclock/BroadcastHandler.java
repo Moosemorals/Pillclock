@@ -24,7 +24,7 @@ import java.util.GregorianCalendar;
  * Created by osric on 11/02/18.
  */
 
-public class PillclockAppWidgetProvider extends AppWidgetProvider {
+public class BroadcastHandler extends AppWidgetProvider {
 
     // Some colors. Remember: ARGB, and FF is opaque.
     private static final int START_HAND_COLOR = 0xFF00FF00;
@@ -65,7 +65,7 @@ public class PillclockAppWidgetProvider extends AppWidgetProvider {
 
         for (int appWidgetId : appWidgetIds) {
             Log.d("updateWidget", "Updating widget " + appWidgetId);
-            Intent intent = new Intent(context, MainActivity.class);
+            Intent intent = new Intent(context, DialogActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.pillclock_appwidget);
