@@ -3,12 +3,10 @@ package com.fluffypeople.pillclock;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Locale;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -19,16 +17,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final TextView status = findViewById(R.id.status);
-
-        Calendar lastPill = PillclockApplication.getLastPill(this);
-
-        DateFormat df = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
-
-        String lastPillString = df.format(lastPill.getTime());
-
-        status.setText(getString(R.string.status, lastPillString));
-
 
         // Send a message to the BroadcastListener to get the to start the alarm
         Intent intent = new Intent(this, BroadcastHandler.class);
@@ -37,4 +25,17 @@ public class MainActivity extends Activity {
         sendBroadcast(intent);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        List<Long> pillTimes = PillclockApplication.getPillTimes(this);
+        int pillCount = pillTimes.size();
+
+        ListView pillList = findViewById(R.id.status);
+        pillList.setAdapter(new PillListAdapter(this, pillTimes));
+        TextView count = findViewById(R.id.pill_count);
+
+        count.setText(getString(R.string.pill_count, pillCount, getResources().getQuantityString(R.plurals.pill, pillCount)));
+
+    }
 }

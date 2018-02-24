@@ -54,25 +54,41 @@ public class BroadcastHandler extends AppWidgetProvider {
         }
     }
 
+    @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         updateWidget(context);
+    }
+
+    @Override
+    public void onDeleted(Context context, int[] appWidgetIds) {
+        for (int id : appWidgetIds) {
+            PillclockApplication.removePill(context, id);
+        }
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        // Do some tidying up
+        PillclockApplication.disableAlarm(context);
+        PillclockApplication.removeAllPills(context);
     }
 
     private void updateWidget(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
-        Bitmap clock = drawWidget(context);
 
-        for (int appWidgetId : appWidgetIds) {
-            Log.d("updateWidget", "Updating widget " + appWidgetId);
+        for (int id : appWidgetIds) {
+            Bitmap clock = drawWidget(context, id);
+            Log.d("updateWidget", "Updating widget " + id);
             Intent intent = new Intent(context, DialogActivity.class);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            intent.putExtra(PillclockApplication.PILL_ID, id);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.pillclock_appwidget);
             view.setBitmap(R.id.imageView, "setImageBitmap", clock);
             view.setOnClickPendingIntent(R.id.widget, pendingIntent);
 
-            appWidgetManager.updateAppWidget(appWidgetId, view);
+            appWidgetManager.updateAppWidget(id, view);
         }
     }
 
@@ -100,24 +116,24 @@ public class BroadcastHandler extends AppWidgetProvider {
      * @param context A valid context
      * @return The newly constructed Bitmap
      */
-    private Bitmap drawWidget(Context context) {
+    private Bitmap drawWidget(Context context, int id) {
         int width, height;
 
         // Get the time of the last pill, and make a note of the current time
-        Calendar lastPill = PillclockApplication.getLastPill(context);
+        Calendar pill = PillclockApplication.getPill(context, id);
         Calendar now = new GregorianCalendar(PillclockApplication.LOCALE);
 
-        long pillAge = (now.getTimeInMillis() - lastPill.getTimeInMillis()) / (60 * 60 * 1000);
+        long pillAge = (now.getTimeInMillis() - pill.getTimeInMillis()) / (60 * 60 * 1000);
 
         // Get angles from times
-        float lastPillAngle = calculateAngle(lastPill);
+        float pillAngle = calculateAngle(pill);
         float nowAngle = calculateAngle(now);
 
         // Android measures angles clockwise from 3 O'Clock, so calculate the start angle
-        // as lastPillAngle - 90 degrees
-        float startAngle = lastPillAngle - 90;
-        // Sweep is how far round the arc we need to go. Now minus lastPillAngle
-        float sweepAngle = (nowAngle - lastPillAngle);
+        // as pillAngle - 90 degrees
+        float startAngle = pillAngle - 90;
+        // Sweep is how far round the arc we need to go. Now minus pillAngle
+        float sweepAngle = (nowAngle - pillAngle);
         // Modulus is irritating. If sweep is negative, make sure it's positive.
         while (sweepAngle < 0) {
             sweepAngle += 360;
@@ -171,7 +187,7 @@ public class BroadcastHandler extends AppWidgetProvider {
         // And again for the end hand
         p.setColorFilter(new PorterDuffColorFilter(START_HAND_COLOR, PorterDuff.Mode.SRC_IN));
         canvas.save();
-        canvas.rotate(lastPillAngle, width / 2.0f, height / 2.0f);
+        canvas.rotate(pillAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);
         canvas.restore();
 

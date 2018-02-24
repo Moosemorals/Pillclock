@@ -25,9 +25,11 @@ public class DialogActivity extends Activity implements View.OnClickListener {
     }
 
     public void onClick(View v) {
+        int id = getIntent().getIntExtra(PillclockApplication.PILL_ID, -1);
+
         switch (v.getId()) {
             case R.id.dialog_yes:
-                PillclockApplication.setLastPill(this);
+                PillclockApplication.setPill(this, id);
                 sendBroadcast(PillclockApplication.ACTION_TICK);
                 break;
         }
