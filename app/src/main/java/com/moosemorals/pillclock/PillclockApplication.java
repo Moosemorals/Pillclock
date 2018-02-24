@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +18,7 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
+ * Holds the non-ui stuff
  * Created by Osric on 11/02/2018.
  */
 
@@ -26,6 +26,7 @@ public class PillclockApplication extends Application {
 
     static final Locale LOCALE = Locale.ENGLISH;
     private static final String PACKAGE = "com.moosemorals.pillclock";
+    static final String PILL_TIME = PACKAGE + ".PILL_TIME";
     static final String PILL_ID = PACKAGE + ".PILL_ID";
     static final String PILL_ID_SET = PACKAGE + ".PILL_ID_SET";
     static final String CONFIG_PILL = PACKAGE + ".PILL";
@@ -62,19 +63,20 @@ public class PillclockApplication extends Application {
      * @return The time the pill was taken.
      */
     static long setPill(Context context, int id) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
-
         long pill = System.currentTimeMillis();
+        return setPill(context, Integer.toString(id), pill);
+    }
 
+    static long setPill(Context context, String id, long pillTime) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
         Set<String> idSet = prefs.getStringSet(PILL_ID_SET, new HashSet<String>());
-        idSet.add(String.format(LOCALE, "%d", id));
+        idSet.add(id);
 
         prefs.edit()
                 .putStringSet(PILL_ID_SET, idSet)
-                .putLong(getConfigPillId(id), pill)
+                .putLong(getConfigPillId(id), pillTime)
                 .apply();
-
-        return pill;
+        return pillTime;
     }
 
     /**
@@ -107,27 +109,16 @@ public class PillclockApplication extends Application {
         e.apply();
     }
 
-    static List<Long> getPillTimes(Context context) {
+    static List<PillData> getPillTimes(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
         Set<String> idSet = prefs.getStringSet(PILL_ID_SET, new HashSet<String>());
 
-        ArrayList<Long> result = new ArrayList<>(idSet.size());
+        ArrayList<PillData> result = new ArrayList<>(idSet.size());
         for (String id : idSet) {
-            result.add(prefs.getLong(getConfigPillId(id), 0));
+            result.add(new PillData(prefs.getLong(getConfigPillId(id), 0), id));
         }
 
-        Collections.sort(result, new Comparator<Long>() {
-            @Override
-            public int compare(Long left, Long right) {
-                if (left < right) {
-                    return 1;
-                } else if (left > right) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        });
+        Collections.sort(result);
 
         return result;
     }
@@ -146,6 +137,14 @@ public class PillclockApplication extends Application {
         }
     }
 
+    static void refreshWidgets(Context context) {
+        // Send a message to the BroadcastListener to get the to start the alarm
+        Intent intent = new Intent(context, BroadcastHandler.class);
+        intent.setAction(PillclockApplication.ACTION_ENABLE_ALARM);
+
+        context.sendBroadcast(intent);
+    }
+
     private static PendingIntent getAlarmIntent(Context context) {
         Intent intent = new Intent(context, BroadcastHandler.class);
         intent.setAction(ACTION_UPDATE_CLOCK);
@@ -158,6 +157,8 @@ public class PillclockApplication extends Application {
     }
 
     private static String getConfigPillId(String id) {
-        return PILL_ID + "-" + id;
+        return CONFIG_PILL + "-" + id;
     }
+
+
 }

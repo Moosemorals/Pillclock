@@ -74,13 +74,14 @@ public class BroadcastHandler extends AppWidgetProvider {
     }
 
     private void updateWidgets(Context context) {
+        Log.d("onUpdate", "Updating da widgets");
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
 
         for (int id : appWidgetIds) {
             Bitmap clock = drawWidget(context, id);
             Log.d("updateWidgets", "Updating widget " + id);
-            Intent intent = new Intent(context, DialogActivity.class);
+            Intent intent = new Intent(context, ConfirmActivity.class);
             intent.putExtra(PillclockApplication.PILL_ID, id);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 

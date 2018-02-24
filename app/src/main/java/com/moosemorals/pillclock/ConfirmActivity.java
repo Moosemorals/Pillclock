@@ -10,7 +10,7 @@ import android.widget.Button;
  * Created by Osric on 24/02/2018.
  */
 
-public class DialogActivity extends Activity implements View.OnClickListener {
+public class ConfirmActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

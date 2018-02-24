@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
+        android:name=".PillclockApplication"
         android:allowBackup="true"
         android:icon="@drawable/clock_face"
         android:label="@string/app_name"
@@ -35,7 +36,7 @@
         </activity>
 
         <activity
-            android:name=".DialogActivity"
+            android:name=".ConfirmActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:theme="@android:style/Theme.Dialog" />
