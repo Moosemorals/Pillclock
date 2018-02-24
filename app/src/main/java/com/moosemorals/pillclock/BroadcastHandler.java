@@ -45,9 +45,9 @@ public class BroadcastHandler extends AppWidgetProvider {
             case PillclockApplication.ACTION_ENABLE_ALARM:
                 PillclockApplication.enableAlarm(context);
                 break;
-            case PillclockApplication.ACTION_TICK:
-                updateWidget(context);
-
+            case PillclockApplication.ACTION_UPDATE_CLOCK:
+                updateWidgets(context);
+                break;
             default:
                 super.onReceive(context, intent);
                 break;
@@ -56,7 +56,7 @@ public class BroadcastHandler extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        updateWidget(context);
+        updateWidgets(context);
     }
 
     @Override
@@ -73,13 +73,13 @@ public class BroadcastHandler extends AppWidgetProvider {
         PillclockApplication.removeAllPills(context);
     }
 
-    private void updateWidget(Context context) {
+    private void updateWidgets(Context context) {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
 
         for (int id : appWidgetIds) {
             Bitmap clock = drawWidget(context, id);
-            Log.d("updateWidget", "Updating widget " + id);
+            Log.d("updateWidgets", "Updating widget " + id);
             Intent intent = new Intent(context, DialogActivity.class);
             intent.putExtra(PillclockApplication.PILL_ID, id);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);

@@ -29,7 +29,7 @@ public class PillclockApplication extends Application {
     static final String PILL_ID = PACKAGE + ".PILL_ID";
     static final String PILL_ID_SET = PACKAGE + ".PILL_ID_SET";
     static final String CONFIG_PILL = PACKAGE + ".PILL";
-    static final String ACTION_TICK = PACKAGE + ".ACTION_TICK";
+    static final String ACTION_UPDATE_CLOCK = PACKAGE + ".ACTION_UPDATE_CLOCK";
     static final String ACTION_ENABLE_ALARM = PACKAGE + ".ACTION_ENABLE_ALARM";
     static final String PREFERENCES = PACKAGE;
 
@@ -148,7 +148,7 @@ public class PillclockApplication extends Application {
 
     private static PendingIntent getAlarmIntent(Context context) {
         Intent intent = new Intent(context, BroadcastHandler.class);
-        intent.setAction(ACTION_TICK);
+        intent.setAction(ACTION_UPDATE_CLOCK);
 
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }

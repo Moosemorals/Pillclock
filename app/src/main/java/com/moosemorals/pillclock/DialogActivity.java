@@ -30,7 +30,7 @@ public class DialogActivity extends Activity implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.dialog_yes:
                 PillclockApplication.setPill(this, id);
-                sendBroadcast(PillclockApplication.ACTION_TICK);
+                sendBroadcast(PillclockApplication.ACTION_UPDATE_CLOCK);
                 break;
         }
         finish();
