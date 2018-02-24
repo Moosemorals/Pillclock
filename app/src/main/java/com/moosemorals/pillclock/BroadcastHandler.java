@@ -1,4 +1,4 @@
-package com.fluffypeople.pillclock;
+package com.moosemorals.pillclock;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;

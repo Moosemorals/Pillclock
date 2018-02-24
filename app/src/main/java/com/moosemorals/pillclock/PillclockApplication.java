@@ -1,4 +1,4 @@
-package com.fluffypeople.pillclock;
+package com.moosemorals.pillclock;
 
 
 import android.app.AlarmManager;
@@ -25,7 +25,7 @@ import java.util.Set;
 public class PillclockApplication extends Application {
 
     static final Locale LOCALE = Locale.ENGLISH;
-    private static final String PACKAGE = "com.fluffypeople.pillclock";
+    private static final String PACKAGE = "com.moosemorals.pillclock";
     static final String PILL_ID = PACKAGE + ".PILL_ID";
     static final String PILL_ID_SET = PACKAGE + ".PILL_ID_SET";
     static final String CONFIG_PILL = PACKAGE + ".PILL";
