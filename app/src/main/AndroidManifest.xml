@@ -39,7 +39,10 @@
             android:name=".ConfirmActivity"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Dialog" />
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Material.Light.Dialog.NoActionBar.MinWidth"
+
+            />
 
     </application>
 

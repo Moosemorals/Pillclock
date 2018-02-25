@@ -1,39 +1,40 @@
 package com.moosemorals.pillclock;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 
 /**
+ *
  * Created by Osric on 24/02/2018.
  */
 
-public class ConfirmActivity extends Activity implements View.OnClickListener {
+public class ConfirmActivity extends Activity implements DialogInterface.OnClickListener {
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dialog);
-        setTitle(R.string.dialog_title);
-
-        Button dialog_no = findViewById(R.id.dialog_no);
-        dialog_no.setOnClickListener(this);
-
-        Button dialog_yes = findViewById(R.id.dialog_yes);
-        dialog_yes.setOnClickListener(this);
     }
 
-    public void onClick(View v) {
-        int id = getIntent().getIntExtra(PillclockApplication.PILL_ID, -1);
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-        switch (v.getId()) {
-            case R.id.dialog_yes:
-                PillclockApplication.setPill(this, id);
-                sendBroadcast(PillclockApplication.ACTION_UPDATE_CLOCK);
-                break;
-        }
-        finish();
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.dialog_title)
+                .setPositiveButton(R.string.dialog_yes, this)
+                .setNegativeButton(R.string.dialog_no, this)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        close();
+                    }
+                })
+                .show();
+
     }
 
     private void sendBroadcast(String action) {
@@ -41,5 +42,28 @@ public class ConfirmActivity extends Activity implements View.OnClickListener {
         intent.setAction(action);
 
         sendBroadcast(intent);
+    }
+
+    @Override
+    public void onClick(DialogInterface dialogInterface, int which) {
+
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            throw new IllegalStateException("Must have extras for dialog");
+        }
+        int id = extras.getInt(PillclockApplication.PILL_ID);
+
+        switch (which) {
+            case DialogInterface.BUTTON_POSITIVE:
+                PillclockApplication.setPill(this, id);
+                sendBroadcast(PillclockApplication.ACTION_UPDATE_CLOCK);
+                break;
+        }
+        close();
+    }
+
+    private void close() {
+        setVisible(false);
+        finish();
     }
 }

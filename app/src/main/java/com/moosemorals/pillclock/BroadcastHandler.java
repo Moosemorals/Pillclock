@@ -27,8 +27,8 @@ import java.util.GregorianCalendar;
 public class BroadcastHandler extends AppWidgetProvider {
 
     // Some colors. Remember: ARGB, and FF is opaque.
-    private static final int START_HAND_COLOR = 0xFF00FF00;
-    private static final int END_HAND_COLOR = 0xFFFFFFFF;
+    private static final int START_HAND_COLOR = 0xFFFFFFFF;
+    private static final int END_HAND_COLOR = 0xFF00FF00;
     private static final int SECTOR_BASE_COLOR = 0xA0000000;
     private static final int SECTOR_ALERT_COLOR = 0x40880000;
 
@@ -74,7 +74,7 @@ public class BroadcastHandler extends AppWidgetProvider {
     }
 
     private void updateWidgets(Context context) {
-        Log.d("onUpdate", "Updating da widgets");
+        //  Toast.makeText(context, "Updating da widgets", Toast.LENGTH_LONG).show();
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
 
@@ -179,18 +179,19 @@ public class BroadcastHandler extends AppWidgetProvider {
 
         // I'm not sure exactly how this works, but setup the paint to change the color of the hand
         // Then rotate the bitmap to draw the start hand
+        p.setColorFilter(new PorterDuffColorFilter(START_HAND_COLOR, PorterDuff.Mode.SRC_IN));
+        canvas.save();
+        canvas.rotate(pillAngle, width / 2.0f, height / 2.0f);
+        canvas.drawBitmap(hand, 0, 0, p);
+        canvas.restore();
+
+        // And again for the start hand
         p.setColorFilter(new PorterDuffColorFilter(END_HAND_COLOR, PorterDuff.Mode.SRC_IN));
         canvas.save();
         canvas.rotate(nowAngle, width / 2.0f, height / 2.0f);
         canvas.drawBitmap(hand, 0, 0, p);
         canvas.restore();
 
-        // And again for the end hand
-        p.setColorFilter(new PorterDuffColorFilter(START_HAND_COLOR, PorterDuff.Mode.SRC_IN));
-        canvas.save();
-        canvas.rotate(pillAngle, width / 2.0f, height / 2.0f);
-        canvas.drawBitmap(hand, 0, 0, p);
-        canvas.restore();
 
         // And done.
         return result;
