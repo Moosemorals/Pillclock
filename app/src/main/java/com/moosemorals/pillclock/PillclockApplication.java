@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -30,7 +31,7 @@ public class PillclockApplication extends Application {
     static final String PILL_ID = PACKAGE + ".PILL_ID";
     static final String PILL_ID_SET = PACKAGE + ".PILL_ID_SET";
     static final String CONFIG_PILL = PACKAGE + ".PILL";
-    static final String ACTION_UPDATE_CLOCK = PACKAGE + ".ACTION_UPDATE_CLOCK";
+    static final String ACTION_UPDATE_WIDGETS = PACKAGE + ".ACTION_UPDATE_CLOCK";
     static final String ACTION_ENABLE_ALARM = PACKAGE + ".ACTION_ENABLE_ALARM";
     static final String PREFERENCES = PACKAGE;
 
@@ -42,6 +43,10 @@ public class PillclockApplication extends Application {
      * @return A Calendar set to the right time/date
      */
     static Calendar getPill(Context context, int id) {
+        return getPill(context, getConfigPillId(id));
+    }
+
+    static Calendar getPill(Context context, String id) {
         SharedPreferences prefs = context.getSharedPreferences(PREFERENCES, 0);
         long pill = prefs.getLong(getConfigPillId(id), -1);
 
@@ -62,9 +67,11 @@ public class PillclockApplication extends Application {
      * @param id      which one we're setting
      * @return The time the pill was taken.
      */
-    static long setPill(Context context, int id) {
+
+    static long setPill(Context context, String id) {
+
         long pill = System.currentTimeMillis();
-        return setPill(context, Integer.toString(id), pill);
+        return setPill(context, id, pill);
     }
 
     static long setPill(Context context, String id, long pillTime) {
@@ -138,16 +145,17 @@ public class PillclockApplication extends Application {
     }
 
     static void refreshWidgets(Context context) {
+        Log.d("refreshWidgets", "Sending broadkast");
         // Send a message to the BroadcastListener to get the to start the alarm
         Intent intent = new Intent(context, BroadcastHandler.class);
-        intent.setAction(PillclockApplication.ACTION_ENABLE_ALARM);
+        intent.setAction(PillclockApplication.ACTION_UPDATE_WIDGETS);
 
         context.sendBroadcast(intent);
     }
 
     private static PendingIntent getAlarmIntent(Context context) {
         Intent intent = new Intent(context, BroadcastHandler.class);
-        intent.setAction(ACTION_UPDATE_CLOCK);
+        intent.setAction(ACTION_ENABLE_ALARM);
 
         return PendingIntent.getBroadcast(context, 0, intent, 0);
     }

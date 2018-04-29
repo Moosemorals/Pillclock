@@ -4,21 +4,28 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.util.Log;
+import android.widget.TimePicker;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import static com.moosemorals.pillclock.PillclockApplication.LOCALE;
 
 /**
  * Created by Osric on 24/02/2018.
  */
 
-public final class TimePickerFragment extends DialogFragment {
+public final class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener {
 
-    private TimePickerDialog.OnTimeSetListener done;
+    private DialogInterface.OnDismissListener dismissListener;
 
-    public void setOnTimeSetListener(TimePickerDialog.OnTimeSetListener done) {
-        this.done = done;
+    void setOnDismissListener(DialogInterface.OnDismissListener dismissListener) {
+        this.dismissListener = dismissListener;
     }
 
     @Override
@@ -28,20 +35,46 @@ public final class TimePickerFragment extends DialogFragment {
             throw new IllegalStateException("TimePickerFragment must be called with arguments");
         }
 
-        PillData pillData = new PillData(args.getLong(PillclockApplication.PILL_TIME), args.getString(PillclockApplication.PILL_ID));
+        Activity parent = getActivity();
+        Calendar c = PillclockApplication.getPill(parent, args.getString(PillclockApplication.PILL_ID));
 
-        // Use the current time as the default values for the picker
-        final Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(pillData.getLastTaken());
         int hour = c.get(Calendar.HOUR_OF_DAY);
         int minute = c.get(Calendar.MINUTE);
 
-        Activity parent = getActivity();
-
         // Create a new instance of TimePickerDialog and return it
-        return new TimePickerDialog(parent, done, hour, minute,
-                DateFormat.is24HourFormat(parent));
+
+        return new TimePickerDialog(parent, TimePickerFragment.this, hour, minute,
+                DateFormat.is24HourFormat(parent)) {
+            @Override
+            public void onClick(DialogInterface dialog1, int which) {
+                super.onClick(dialog1, which);
+                dismissListener.onDismiss(dialog1);
+            }
+        };
     }
 
+    @Override
+    public void onTimeSet(TimePicker timePicker, int hour, int minute) {
+        Bundle args = getArguments();
+        Activity parent = getActivity();
+        Calendar now =  new GregorianCalendar(LOCALE);
+        now.setTimeInMillis(System.currentTimeMillis());
 
+        Calendar newPill = new GregorianCalendar(LOCALE);
+        newPill.setTimeInMillis(System.currentTimeMillis());
+        newPill.set(Calendar.HOUR_OF_DAY, hour);
+        newPill.set(Calendar.MINUTE, minute);
+        newPill.set(Calendar.SECOND, 0);
+        newPill.set(Calendar.MILLISECOND, 0);
+
+        if (hour > now.get(Calendar.HOUR_OF_DAY)) {
+            newPill.add(Calendar.HOUR_OF_DAY, -12);
+        }
+
+        Log.d("onTimeSet", "Setting time from " + new Date(now.getTimeInMillis()) + " to " + new Date(newPill.getTimeInMillis()));
+
+        String id = args.getString(PillclockApplication.PILL_ID);
+        PillclockApplication.setPill(parent, id, newPill.getTimeInMillis());
+        PillclockApplication.refreshWidgets(parent);
+    }
 }

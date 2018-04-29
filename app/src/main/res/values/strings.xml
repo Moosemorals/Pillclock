@@ -9,4 +9,5 @@
     <string name="dialog_title">Reset clock</string>
     <string name="pill_count">You are tracking %1$d %2$s:</string>
     <string name="pill_list_row">Last taken %1$s</string>
+    <string name="dialog_neutral">Set time</string>
 </resources>

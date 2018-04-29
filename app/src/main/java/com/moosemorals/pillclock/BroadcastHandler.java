@@ -45,7 +45,7 @@ public class BroadcastHandler extends AppWidgetProvider {
             case PillclockApplication.ACTION_ENABLE_ALARM:
                 PillclockApplication.enableAlarm(context);
                 break;
-            case PillclockApplication.ACTION_UPDATE_CLOCK:
+            case PillclockApplication.ACTION_UPDATE_WIDGETS:
                 updateWidgets(context);
                 break;
             default:
@@ -78,18 +78,20 @@ public class BroadcastHandler extends AppWidgetProvider {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
         int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(context, this.getClass()));
 
-        for (int id : appWidgetIds) {
+        for (int intId : appWidgetIds) {
+            String id = Integer.toString(intId);
             Bitmap clock = drawWidget(context, id);
             Log.d("updateWidgets", "Updating widget " + id);
             Intent intent = new Intent(context, ConfirmActivity.class);
             intent.putExtra(PillclockApplication.PILL_ID, id);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, intId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.pillclock_appwidget);
             view.setBitmap(R.id.imageView, "setImageBitmap", clock);
             view.setOnClickPendingIntent(R.id.widget, pendingIntent);
 
-            appWidgetManager.updateAppWidget(id, view);
+            appWidgetManager.updateAppWidget(intId, view);
+            Log.d("UpdateWidgets", "Updated widget " + id);
         }
     }
 
@@ -115,9 +117,10 @@ public class BroadcastHandler extends AppWidgetProvider {
      * showing how far its been between when the pill was taken, and now.
      *
      * @param context A valid context
+     * @param id
      * @return The newly constructed Bitmap
      */
-    private Bitmap drawWidget(Context context, int id) {
+    private Bitmap drawWidget(Context context, String id) {
         int width, height;
 
         // Get the time of the last pill, and make a note of the current time

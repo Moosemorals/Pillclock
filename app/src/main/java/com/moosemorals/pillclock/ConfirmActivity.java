@@ -2,9 +2,14 @@ package com.moosemorals.pillclock;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.TimePicker;
+
+import java.util.Calendar;
 
 /**
  *
@@ -12,8 +17,6 @@ import android.os.Bundle;
  */
 
 public class ConfirmActivity extends Activity implements DialogInterface.OnClickListener {
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +29,7 @@ public class ConfirmActivity extends Activity implements DialogInterface.OnClick
         new AlertDialog.Builder(this)
                 .setMessage(R.string.dialog_title)
                 .setPositiveButton(R.string.dialog_yes, this)
+                .setNeutralButton(R.string.dialog_neutral, this)
                 .setNegativeButton(R.string.dialog_no, this)
                 .setOnCancelListener(new DialogInterface.OnCancelListener() {
                     @Override
@@ -51,19 +55,37 @@ public class ConfirmActivity extends Activity implements DialogInterface.OnClick
         if (extras == null) {
             throw new IllegalStateException("Must have extras for dialog");
         }
-        int id = extras.getInt(PillclockApplication.PILL_ID);
+        String id = extras.getString(PillclockApplication.PILL_ID);
 
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
                 PillclockApplication.setPill(this, id);
-                sendBroadcast(PillclockApplication.ACTION_UPDATE_CLOCK);
+                PillclockApplication.refreshWidgets(this);
+                close();
+                break;
+            case DialogInterface.BUTTON_NEUTRAL:
+                showTimePicker(extras);
                 break;
         }
-        close();
+    }
+
+      private void showTimePicker(Bundle extras) {
+        TimePickerFragment dialog = new TimePickerFragment();
+
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+
+                close();
+            }
+        });
+        dialog.setArguments(extras);
+        dialog.show(getFragmentManager(), "timePicker");
     }
 
     private void close() {
         setVisible(false);
         finish();
     }
+
 }

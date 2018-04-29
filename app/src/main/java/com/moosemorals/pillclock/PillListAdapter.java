@@ -25,14 +25,13 @@ import java.util.Set;
  * Created by Osric on 24/02/2018.
  */
 
-final class PillListAdapter implements ListAdapter, TimePickerDialog.OnTimeSetListener {
+final class PillListAdapter implements ListAdapter{
 
     private final Set<DataSetObserver> observers = new HashSet<>();
 
     private final Activity activity;
     private final DateFormat df;
     private List<PillData> pills;
-    private PillData current;
 
     PillListAdapter(Activity activity) {
         this.pills = PillclockApplication.getPillTimes(activity);
@@ -98,13 +97,6 @@ final class PillListAdapter implements ListAdapter, TimePickerDialog.OnTimeSetLi
         TextView statusText = view.findViewById(R.id.status_text);
         statusText.setText(text);
 
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showTimePicker(pill);
-            }
-        });
-
         return view;
     }
 
@@ -123,19 +115,6 @@ final class PillListAdapter implements ListAdapter, TimePickerDialog.OnTimeSetLi
         return pills.isEmpty();
     }
 
-    private void showTimePicker(PillData pill) {
-        current = pill;
-        Bundle args = new Bundle();
-        args.putLong(PillclockApplication.PILL_TIME, pill.getLastTaken());
-        args.putString(PillclockApplication.PILL_ID, pill.getId());
-
-        TimePickerFragment dialog = new TimePickerFragment();
-        dialog.setOnTimeSetListener(this);
-        dialog.setArguments(args);
-
-        dialog.show(activity.getFragmentManager(), "timePicker");
-    }
-
     private void notifyChanges() {
         synchronized (observers) {
             for (DataSetObserver o : observers) {
@@ -144,17 +123,4 @@ final class PillListAdapter implements ListAdapter, TimePickerDialog.OnTimeSetLi
         }
     }
 
-    @Override
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Log.d("onTimeSet", "Time has been set");
-        final Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(current.getLastTaken());
-        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-        c.set(Calendar.MINUTE, minute);
-
-        PillclockApplication.setPill(activity, current.getId(), c.getTimeInMillis());
-        PillclockApplication.refreshWidgets(activity);
-        pills = PillclockApplication.getPillTimes(activity);
-        notifyChanges();
-    }
 }
